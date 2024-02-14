@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your Page Title</title>
+        <style>
+        
+            :root {
+                --primary-color: #0ad3f7;  
+                --text-color: #0e0d0d;  
+                --background-color: #e9f8f8;  
+                --box-shadow-color: rgba(0, 0, 0, 0.3);  
+    
+                 --upload-result-color: #0ad3f7;
+            }
+    
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                background-color: var(--background-color);
+                color: var(--text-color);
+            }
+    
+            header {
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                padding: 10px;
+                text-align: center;
+            }
+    
+            main {
+                padding: 20px;
+            }
+    
+            footer {
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                padding: 10px;
+                text-align: center;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+            }
+    
+             #uploadPopup {
+                background-color: var(--background-color);
+                padding: 20px;
+                box-shadow: 0 0 10px var(--box-shadow-color);
+                display: none;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+            }
+    
+            #uploadPopup label {
+                display: block;
+                margin-bottom: 10px;
+            }
+    
+            #uploadPopup input[type="file"] {
+                margin-bottom: 10px;
+            }
+    
+            #uploadPopup button {
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                padding: 10px;
+                border: none;
+                cursor: pointer;
+                margin-right: 10px;
+            }
+    
+            #uploadResult {
+                margin-top: 10px;
+                color: var(--upload-result-color);
+            }
+    
+             #viewImagePopup {
+                background-color: var(--background-color);
+                padding: 20px;
+                box-shadow: 0 0 10px var(--box-shadow-color);
+                display: none;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+            }
+    
+            #latestImage img {
+                max-width: 100%;
+            }
+    
+            #latestImage {
+                margin-top: 10px;
+            }
+    
+            #viewImagePopup button {
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                padding: 10px;
+                border: none;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    
+<body>
+
+    <header>
+        <h1>ทดลอง project</h1>
+    </header>
+
+    <main>
+        <!-- <h2>ลองเลยจ้า</h2> -->
+        <div id="popup">
+            <div id="resultPopup"></div>
+            <!-- <button onclick="closePopup()">ปิด</button>
+        </div>
+     -->
+        <div id="viewImagePopup">
+            <h3>รูปภาพล่าสุด</h3>
+            <div id="latestImage"></div>
+            <button onclick="closeViewImagePopup()">ปิด</button>
+        </div>
+
+            
+             
+            <script>
+              
+
+                
+                function showViewImagePopup() {
+         const viewImagePopup = document.getElementById('viewImagePopup');
+        viewImagePopup.style.display = 'block';
+
+         const latestImage = document.getElementById('latestImage');
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '100%';  
+                latestImage.innerHTML = '';  
+                latestImage.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            latestImage.innerHTML = 'ไม่มีรูปภาพล่าสุด';
+        }
+    }
+
+    function closeViewImagePopup() {
+ 
+        document.getElementById('viewImagePopup').style.display = 'none';
+    }
+              
+            </script>    
+<div id="uploadPopup">
+    <form id="uploadFormPopup" enctype="multipart/form-data">
+        <label for="fileInput">เลือกไฟล์:</label>
+        <input type="file" id="fileInput" name="fileInput">
+        <button type="button" onclick="uploadFile()">อัปโหลด</button>
+    </form>
+    <div id="uploadResult"></div>
+    <button onclick="closeUploadPopup()">ปิด</button>
+</div>
+
+<script>
+      async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/upload_file', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const result = await response.json();
+
+        const uploadResult = document.getElementById('uploadResult');
+        uploadResult.innerHTML = `ผลลัพธ์: ${result.upload_result}`;
+        uploadResult.style.color = '#0ad3f7'; 
+
+        // หลังจากอัปโหลดเสร็จ โชว์รูปภาพทันที
+        showLatestImage();
+    }
+    function showUploadPopup() {
+    
+        document.getElementById('uploadPopup').style.display = 'block';
+    }
+
+    function closeUploadPopup() {
+    
+        document.getElementById('uploadPopup').style.display = 'none';
+    }
+
+    async function predictYolov8() {
+            const response = await fetch('/predict_yolov8');
+            const result = await response.text();
+            document.getElementById('yolov8Result').innerHTML = result;
+        }
+        async function showLatestImage() {
+        const viewImagePopup = document.getElementById('viewImagePopup');
+        const latestImage = document.getElementById('latestImage');
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '100%';  
+                latestImage.innerHTML = '';  
+                latestImage.appendChild(img);
+                viewImagePopup.style.display = 'block'; // โชว์ popup ทันที
+            };
+            reader.readAsDataURL(file);
+        } else {
+            latestImage.innerHTML = 'ไม่มีรูปภาพล่าสุด';
+        }
+    }
+
+    function closeViewImagePopup() {
+        document.getElementById('viewImagePopup').style.display = 'none';
+    }
+//         function makeAPICall() {
+//     // เปลี่ยน URL เพื่อใช้ ngrok URL
+//     fetch('http://abcdefg.ngrok.io/api/endpoint')
+//       .then(response => response.json())
+//       .then(data => console.log(data))
+//       .catch(error => console.error('Error:', error));
+//   }
+
+</script>
+<main>
+    <h2>การอัปโหลด</h2>
+    
+    <p>จำนวนรูปที่อัปโหลด: <span id="uploadedImageCount">{{ uploaded_images_count }}</span></p>
+    <button type="button" style="background-color: #0ad3f7; border: 1px solid #fdfcfc; padding: 10px; border-radius: 5px;" onclick="showUploadPopup()">อัปโหลดไฟล์</button>
+    <button type="button" style="background-color: #0ad3f7; border: 1px solid #fdfcfc; padding: 10px; border-radius: 5px;" onclick="showViewImagePopup()">ดูรูปภาพ</button>
+    <button type="button" style="background-color: #0ad3f7; border: 1px solid #fdfcfc; padding: 10px; border-radius: 5px;" onclick="predictYolov8()">ดูผลลัพธ์ </button>
+    <!-- <button onclick="makeAPICall()">Make API Call</button> -->
+    <!-- แสดงผลลัพธ์ YOLOv8 -->
+    <!-- <div id="yolov8Result" style="margin-top: 20px; height: auto;"></div> -->
+</main>
+</script>
+</body>
+</html>
